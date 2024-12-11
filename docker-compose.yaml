@@ -1,13 +1,41 @@
-version: '3'
-
 services:
-  goapp: 
-    build: .
-    platform: linux/amd64
+  balances-service:
+    build:
+      context: ./balances-service
+      dockerfile: Dockerfile
     volumes:
-      - .:/app
+      - ./balances-service:/app
     ports:
-      - 8080:8080
+      - 3003:3003
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      DATABASE_URL: postgres://user:password@postgres:5432/balances
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: balances
+    ports:
+      - 5432:5432
+    volumes:
+      - .docker/postgres:/var/lib/postgresql/data
+      - ./balances-service/migrations:/docker-entrypoint-initdb.d
+
+
+  goapp:
+    build:
+      context: ./goapp
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    ports:
+      - 3002:3002
+    depends_on:
+      - mysql
+      - kafka
 
   mysql:
     image: mysql:5.7
@@ -19,6 +47,7 @@ services:
     ports:
       - 3306:3306
     volumes:
+      - ./goapp/mysql:/docker-entrypoint-initdb.d
       - .docker/mysql:/var/lib/mysql
 
   zookeeper:
@@ -70,4 +99,3 @@ services:
       CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
       CONFLUENT_METRICS_TOPIC_REPLICATION: 1
       PORT: 9021
-  

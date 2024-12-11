@@ -56,7 +56,7 @@ func main() {
 	createClientUseCase := create_client.NewCreateClientUseCase(clientDb)
 	createAccountUseCase := createaccount.NewCreateAccountUseCase(accountDb, clientDb)
 
-	webserver := webserver.NewWebServer(":8080")
+	webserver := webserver.NewWebServer(":3002")
 
 	clientHandler := web.NewWebClientHandler(*createClientUseCase)
 	accountHandler := web.NewWebAccountHandler(*createAccountUseCase)
